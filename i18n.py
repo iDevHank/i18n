@@ -24,8 +24,8 @@ from utils import console
 from utils import file_assistant
 
 
-def _should_skip_line(line):
-    return line == '\n' or line.startswith('//')
+def _should_skip_line(line, commented=False):
+    return line == '\n' or line.startswith('//') or commented
 
 
 def _check_localiztion_format_files(file_paths):
@@ -40,8 +40,15 @@ def _check_localiztion_format_files(file_paths):
 def _check_localiztion_format(file_path):
     is_good_format = True
     with open(file_path, 'r') as source_file:
+        commented = False
         for index, line in enumerate(source_file):
-            if _should_skip_line(line):
+            if line.startswith('/*'):
+                commented = True
+                continue
+            if '*/' in line:
+                commented = False
+                continue
+            if _should_skip_line(line, commented):
                 continue
             if not re.match(config.LOCALIZABLE_FORMAT_RE, line):
                 console.print_warning('Error format in file:\n{}, line: {}'
@@ -59,8 +66,19 @@ def _remove_duplicate_strings(file_path):
     keys = []
     lines = []
     with open(file_path, 'r') as source_file:
+        commented = False
         for line in source_file:
-            if _should_skip_line(line):
+            if line.startswith('/*'):
+                commented = True
+                keys.append('')
+                lines.append(line)
+                continue
+            if '*/' in line:
+                commented = False
+                keys.append('')
+                lines.append(line)
+                continue
+            if _should_skip_line(line, commented):
                 keys.append('')
                 lines.append(line)
             else:
@@ -150,7 +168,7 @@ def _get_all_localization_strings(path):
                 strings = re.findall(config.LOCALIZABLE_RE, line)
                 for string in strings:
                     name = string.replace(
-                        config.LOCALIZABLE_SUFFIX,
+                        config.SUFFIX,
                         '')
                     all_localization_strings.add(name)
     return all_localization_strings
@@ -160,9 +178,10 @@ def _find_unlocalized_strings(strings, paths):
     unlocalized_strings = set()
     for name in strings:
         for path in paths:
-            if file_assistant.file_contains(path, r'"{}"'.format(name)):
+            if file_assistant.file_contains(path, name):
                 continue
             else:
+                print('{} not localized in {}'.format(name, path))
                 break
         else:
             continue

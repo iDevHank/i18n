@@ -19,5 +19,5 @@ SOURCE_FILE_EXCLUSIVE_PATHS = [
 LOCALIZABLE_FILE_EXCLUSIVE_PATHS = ['Carthage', 'ThirdParty',
                                     'Pods', 'Framework', 'bin']
 
-LOCALIZABLE_FORMAT_RE = r'"(?:\\.|[^"\\])*" = "(?:\\.|[^"\\])*";\n'
+LOCALIZABLE_FORMAT_RE = r'"(?:\\.|[^"\\])*"\s*=\s*"(?:\\.|[^"\\])*";\n'
 DEFAULT_TARGET_PATH = 'generated.strings'
